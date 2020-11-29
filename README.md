@@ -32,13 +32,56 @@ You’ll still be prompted for the usual questions in the interactive session an
 
 ### Manual
 
+```
+NAME
+       nativefier.sh - Automates the process of Nativefierl
+
+SYNOPSIS
+       nativefier.sh [OPTION]
+
+DESCRIPTION
+       Automates the process of Nativefier and installs the resulting electron app.
+
+OPTIONS
+       -p, --pkgname PKGNAME
+              package name (the terminal command to run this app)
+
+       -n, --name NAME
+              name of the app in application launchers
+
+       -d, --desc DESCRIPTION
+              describe the purpose of this app (used by application launchers)
+
+       -u, --url URL
+              the URL of the Web page to convert
+
+       -N, --nativefier 'ARG'
+              pass arguments to the Nativefier process directly
+
+       --uninstall PKGNAME
+              uninstall a nativefier app
+
+       --list 
+       		  list package name for all installed nativefier apps
+
+       --args 
+       		  print all passable arguments to the Nativefier process
+
+       --help 
+       		  display this help and exit
+
+       --version
+              output version information and exit
+
+EXAMPLES
+       nativefier.sh --nativefier 'maximize,tray start-in-tray,single-instance'
+```
+
 All command-line options are optional unless you use the `-y` option which will fail if the following options are missing:
 
 - `--pkgname`,
 - `--name`,
 - `--url`.
-
-
 
 #### The Nativefier process
 
