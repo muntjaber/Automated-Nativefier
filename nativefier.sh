@@ -179,7 +179,7 @@ tell-nativefier() {
 
     arguments="$(echo "$1" | tr ',' '\n'| sed -E 's/\s+/::/g' | sed 's/^:://g')"
     for arg in ${arguments}; do
-        option="$(echo "${nativefier_arguments}" | grep -ie "$(echo "${arg}" | awk -F:: '{print $1}')$")"
+        option="$(echo "${nativefier_arguments}" | grep -iE "^\-{1,2}$(echo "${arg}$" | awk -F:: '{print $1}')$")"
         if [ -n "${option}" ]; then
             nativefier_parsed_arguments+=("$(echo "${option}" "$(echo "${arg}" | awk -F:: '{first = $1; $1=""; print $0}' | sed -Ee 's/^\s*//g' -e 's/^-+//g')")")
         fi
