@@ -38,9 +38,11 @@ function prepare() {
     mkdir -p "${BUILD_DIR}/${pkgname}" && 
     pushd "${BUILD_DIR}/${pkgname}"
 }
-
 function cleanup() {
-    rm -fr "${BUILD_DIR:?}/${pkgname}"
+    if [ -n "${pkgname}" ] && [ -e "${BUILD_DIR:?}/${pkgname}" ]; then
+        rm -fr "${BUILD_DIR:?}/${pkgname}"
+    fi
+    
     exit 0
 }
 
