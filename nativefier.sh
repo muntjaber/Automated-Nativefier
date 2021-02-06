@@ -9,6 +9,31 @@ function say() {
     printf "\n%s" "$1"
 }
 
+function inform() {
+    color="$1"
+    message="$2"
+    ret=1
+
+    case $color in
+        "OK")
+            COLOR="32m[ OK ]"
+            ret=0
+            ;;
+        "NOTICE")
+            COLOR="33m[ NOTICE ]"
+            ret=0
+            ;;
+        "WARNING")
+            COLOR="31m[ WARNING ]"
+            ret=1
+            ;;
+    esac
+
+    echo -e "\e[1;${COLOR} \e[0m${message}"
+    return $ret
+}
+
+
 function prepare() {
     mkdir -p "${BUILD_DIR}/${pkgname}" && 
     pushd "${BUILD_DIR}/${pkgname}"
@@ -22,7 +47,7 @@ function cleanup() {
 trap cleanup SIGINT
 
 function failed() {
-    echo "Exiting due to $(echo "$1" | tr '[:upper:]' '[:lower:]')"
+    inform 'WARNING' "Exiting due to $(echo "$1" | tr '[:upper:]' '[:lower:]')"
     exit 1
 }
 
@@ -156,25 +181,10 @@ function uninstall() {
     echo
 }
 
-nativefier_arguments=$(nativefier --help | \
-    sed '/Usage/,/Options/d'| \
-    grep -Evi '(\(macOS only\)|\(windows only\)|(macOS, windows only))' | \
-    sed -E '/--help|--version|--name|--platform|--no-overwrite/d' | \
-    grep -Eoi '\s(*-{1,2}[a-zA-Z0-9\-]*,?)( <value>| <[a-zA-Z0-9\-]*>| \[[a-zA-Z0-9\-]*\])?' | \
-    tr ',' '\n' | sed '/^$/d' | awk '{print $1}'\
-)
-
-nativefier_help=$(nativefier --help | sed '/Usage/,/Options/d'| \
-            grep -Evi '(\(macOS only\)|\(windows only\)|(macOS, windows only))' | \
-            sed -E '/--help|--version|--name|--platform|--no-overwrite/d' | sort)
-
-nativefier_parsed_arguments=()
-
 tell-nativefier() {
     if [ -z "$1" ]; then
         echo "$nativefier_help"
-        echo "No argument received."
-        exit 1
+        failed "No argument received."
     fi
 
     arguments="$(echo "$1" | tr ',' '\n'| sed -E 's/\s+/::/g' | sed 's/^:://g')"
@@ -230,9 +240,24 @@ function usage() {
 }
 
 if ! command -v npm >/dev/null 2>&1; then
-	echo 'npm missing.'
-	exit 1
+	failed 'npm missing.'
+elif ! command -v nativefier >/dev/null 2>&1; then
+    failed 'nativefier missing.'
 fi
+
+nativefier_arguments=$(nativefier --help | \
+    sed '/Usage/,/Options/d'| \
+    grep -Evi '(\(macOS only\)|\(windows only\)|(macOS, windows only))' | \
+    sed -E '/--help|--version|--name|--platform|--no-overwrite/d' | \
+    grep -Eoi '\s(*-{1,2}[a-zA-Z0-9\-]*,?)( <value>| <[a-zA-Z0-9\-]*>| \[[a-zA-Z0-9\-]*\])?' | \
+    tr ',' '\n' | sed '/^$/d' | awk '{print $1}'\
+)
+
+nativefier_help=$(nativefier --help | sed '/Usage/,/Options/d'| \
+            grep -Evi '(\(macOS only\)|\(windows only\)|(macOS, windows only))' | \
+            sed -E '/--help|--version|--name|--platform|--no-overwrite/d' | sort)
+
+nativefier_parsed_arguments=()
 
 if [ "$#" -gt 0 ]; then
     options=$(getopt -n "${THIS}" -o p:n:d:u:yN:h --long pkgname:,name:,desc:,url:,list,uninstall::,nativefier:,help,args,version -- "$@")
@@ -328,12 +353,6 @@ if [ -z "${UNATTENDED}" ]; then
     done
 fi
 
-if ! command -v nativefier >/dev/null 2>&1; then
-	say 'nativefier missing.'
-	say 'Installing nativefier...'
-	sudo npm install -g nativefier
-fi
-
 ##############################
 ######## PREPARATION #########
 ##############################
@@ -354,13 +373,16 @@ EOF
 ##############################
 ##### CONVERT TO ELECTRON ####
 ##############################
-if ! nativefier \
+if nativefier \
 	--name "${name}" \
     --verbose \
     ${nativefier_parsed_arguments[*]} \
 	"${url}"; then
 
-    failed 'Nativefier failed'
+    inform 'OK' 'Nativefier created electron resources.'    
+
+else
+    failed 'Nativefier failed to create electron resources.'
 fi
 
 pkgsrc=$(echo "$(sanitize_filename "${name}")-linux-"*)
@@ -371,8 +393,10 @@ echo "${appname}" > "${settings}"
 ##############################
 ######## DESKTOP ENTRY #######
 ##############################
-set -x
-gendesk --pkgname "${pkgname}" --name "${name}" --pkgdesc "${desc}" --icon="${pkgname}" -n -f || failed 'gendesk failed'
+gendesk -f --pkgname "${pkgname}" --name "${name}" --pkgdesc "${desc}" --icon="${pkgname}" -n -f || failed 'gendesk failed to create desktop entry.'
+if [ -f "${pkgname}.desktop" ]; then
+   inform 'OK' 'Desktop entry created.' 
+fi
 
 ##############################
 #### INSTALLING THE APP ######
@@ -380,11 +404,31 @@ gendesk --pkgname "${pkgname}" --name "${name}" --pkgdesc "${desc}" --icon="${pk
 
 # The icon is used for the system tray and is expected to be the in app directory.
 cp "${pkgsrc}/resources/app/icon.png" "${pkgname}.png"
-sudo cp -r --remove-destination "${pkgsrc}/resources/app" "/usr/share/${pkgname}"
-sudo chmod -R 775 "/usr/share/${pkgname}"
-sudo install -Dm 775 -t "/usr/bin/" "${pkgname}"
-sudo install -Dm 644 -t "/usr/share/applications/" "${pkgname}.desktop"
-sudo install -Dm 644 -t "/usr/share/pixmaps/" "${pkgname}.png"
+
+if sudo cp -r --remove-destination "${pkgsrc}/resources/app" "/usr/share/${pkgname}"; then
+    sudo chmod -R 775 "/usr/share/${pkgname}"
+    inform 'OK' 'Electron resources installed.'
+else
+    failed 'Could not move electron resources.'
+fi
+
+if sudo install -Dm 775 -t "/usr/bin/" "${pkgname}"; then
+    inform 'OK' 'Executable installed.'
+else
+    failed 'Could not install executable.'
+fi
+
+if sudo install -Dm 644 -t "/usr/share/applications/" "${pkgname}.desktop"; then
+    inform 'OK' 'Desktop entry installed.'
+else
+    failed 'Could not install desktop entry.'
+fi
+
+if sudo install -Dm 644 -t "/usr/share/pixmaps/" "${pkgname}.png"; then
+    inform 'OK' 'Icon installed.'
+else
+    failed 'Could not install icon.'
+fi
 
 ##############################
 ######### CLEAN UP ###########
