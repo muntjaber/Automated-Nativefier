@@ -8,7 +8,13 @@ What it does:
 - generates a `.desktop`  entry so that you can launch the electron app from an application launcher,
 - places the Nativefier generated icon in the appropriate directory.
 
-### Usage
+## Dependencies
+
+- [gendesk](https://github.com/xyproto/gendesk)
+- [nativefier](https://github.com/nativefier/nativefier)
+- [npm](https://www.npmjs.com/)
+
+## Usage
 
 Run `nativefier.sh` for an interactive session. If you want to automate the process, use command-line arguments and the `-y` options to automatically confirm. 
 
@@ -30,7 +36,7 @@ nativefier.sh -N 'maximize,tray start-in-tray,single-instance'
 
 You’ll still be prompted for the usual questions in the interactive session and can still change the parameters (unless you use the `-y` option). 
 
-### Manual
+## Manual
 
 ```
 NAME
@@ -83,7 +89,7 @@ All command-line options are optional unless you use the `-y` option which will 
 - `--name`,
 - `--url`.
 
-#### The Nativefier process
+### The Nativefier process
 
 You can pass arguments to the Nativefier process directly by using the `--nativefier` or `-N` option which expects a comma-separate string of valid Nativefier arguments (see `--args`):
 
