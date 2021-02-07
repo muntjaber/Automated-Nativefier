@@ -8,7 +8,14 @@ What it does:
 - generates a `.desktop`  entry so that you can launch the electron app from an application launcher,
 - places the Nativefier generated icon in the appropriate directory.
 
-## Dependencies
+## Installation
+
+```bash
+git clone https://gitlab.com/montazar/automated-nativefier
+sudo cp automated-nativefier/nativefier.sh /usr/local/bin
+```
+
+### Dependencies
 
 - [gendesk](https://github.com/xyproto/gendesk)
 - [nativefier](https://github.com/nativefier/nativefier)
@@ -104,3 +111,9 @@ nativefier.sh -N '--maximize,--tray start-in-tray,--single-instance,--icon icon.
  ```
 
 Note! The program *does not* check if the arguments you pass to Nativefier are valid.
+
+## Uninstall
+
+```bash
+sudo rm /usr/local/bin/nativefier.sh
+```
