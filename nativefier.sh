@@ -4,6 +4,7 @@
 
 THIS="$(echo "$0" | awk -F/ '{print $NF}')"
 BUILD_DIR="."
+formatted_this="\e[1;32m$(echo "$0" | awk -F/ '{print $NF}')\e[0m"
 
 function say() {
     printf "\n%s" "$1"
@@ -152,8 +153,8 @@ function list-installed() {
 
 function uninstall() {
     if [ -z "$1" ]; then
-        say 'What do you want to uninstall?'
-        echo "Run '${THIS} --installed' to see installed apps."
+        inform "NOTICE" 'What do you want to uninstall?'
+        echo -e "Run '${formatted_this} --installed' to see installed apps."
         return 0
     fi
 
@@ -176,9 +177,9 @@ function uninstall() {
         sudo rm -f "/usr/share/applications/$1.desktop"
         sudo rm -f "/usr/share/pixmaps/$1.png"
 
-        say "$1 uninstalled."
+        inform 'OK' "$1 uninstalled."
     else
-        say 'Aborting...'
+        inform  'NOTICE' 'Aborting...'
     fi
     echo
 }
@@ -219,11 +220,15 @@ function version() {
 }
 
 function usage() {
-    echo 'Usage: nativefier.sh [OPTION]'
+    echo -e "\e[1;31mUsage:\e[0m"
     echo
-    echo 'Automates the process of Nativefier and installs the resulting electron app.'
+    echo -e "   ${formatted_this} [OPTION]"
     echo
-    echo 'Options:'
+    echo -e '\e[1;31mDescription:\e[0m'
+    echo
+    echo '   Automates the process of Nativefier and installs the resulting electron app.'
+    echo
+    echo -e '\e[1;31mOptions:\e[0m'
     echo
     echo " -p, --pkgname PKGNAME            package name (the terminal command to run this app)"
     echo " -n, --name NAME                  name of the app in application launchers"
@@ -236,9 +241,9 @@ function usage() {
     echo " --help                           display this help and exit"
     echo " --version                        output version information and exit"
     echo
-    echo 'Examples:'
+    echo -e '\e[1;31mExamples:\e[0m'
     echo
-    echo "${THIS} --nativefier 'maximize,tray start-in-tray,single-instance' "
+    echo -e "${formatted_this} --nativefier 'maximize,tray start-in-tray,single-instance' "
 }
 
 if ! command -v npm >/dev/null 2>&1; then
@@ -262,7 +267,14 @@ nativefier_help=$(nativefier --help | sed '/Usage/,/Options/d'| \
 nativefier_parsed_arguments=()
 
 if [ "$#" -gt 0 ]; then
-    options=$(getopt -n "${THIS}" -o p:n:d:u:yN:h --long pkgname:,name:,desc:,url:,list,uninstall::,nativefier:,help,args,version -- "$@")
+    options=$(getopt -n "${THIS}" -o p:n:d:u:yN:h --long pkgname:,name:,desc:,url:,list,uninstall::,nativefier:,help,args,version -- "$@" 2>/dev/null)
+
+    if [ "$?" -gt 0 ]; then
+        inform 'WARNING' "Unknown option encountered.\n"
+        usage
+        exit 1
+    fi
+
     eval set -- "$options"
     while :; do
         case $1 in
@@ -322,14 +334,6 @@ if [ "$#" -gt 0 ]; then
                 version
                 exit 0
                 ;;
-            --)
-                break
-                ;;
-            *)
-                printf "Unknown option: (%s).\n" "$1"
-                usage
-                exit 1
-                ;;
         esac
     done
     eval set -- "$@"
@@ -359,7 +363,7 @@ fi
 ######## PREPARATION #########
 ##############################
 UNATTENDED='y'
-say 'Removing old version (if any).'; say
+inform  'NOTICE' 'Removing old version (if any).'; say
 uninstall "${pkgname}"
 
 prepare
@@ -377,7 +381,6 @@ EOF
 ##############################
 if nativefier \
 	--name "${name}" \
-    --verbose \
     ${nativefier_parsed_arguments[*]} \
 	"${url}"; then
 
