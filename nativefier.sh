@@ -153,7 +153,7 @@ function list-installed() {
 function uninstall() {
     if [ -z "$1" ]; then
         say 'What do you want to uninstall?'
-        echo "Run '${THIS} --list' to see installed apps."
+        echo "Run '${THIS} --installed' to see installed apps."
         return 0
     fi
 
@@ -284,7 +284,7 @@ if [ "$#" -gt 0 ]; then
                 url="$2"
                 shift 2; continue
                 ;;
-            --list)
+            --installed)
                 list-installed
                 exit 0
                 ;;
