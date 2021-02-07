@@ -4,7 +4,7 @@
 
 THIS="$(echo "$0" | awk -F/ '{print $NF}')"
 BUILD_DIR="."
-formatted_this="\e[1;32m$(echo "$0" | awk -F/ '{print $NF}')\e[0m"
+formatted_this="\e[1;32m$THIS\e[0m"
 
 function say() {
     printf "\n%s" "$1"
@@ -237,10 +237,10 @@ function usage() {
     echo " -d, --desc DESCRIPTION           describe the purpose of this app (used by application launchers)"
     echo " -u, --url URL                    the URL of the Web page to convert"
     echo " -N, --nativefier 'ARG'           pass arguments to the Nativefier process directly"
+    echo " -h, --help                       display this help and exit"
     echo " --uninstall PKGNAME              uninstall a nativefier app"
     echo " --installed                      list package name for all installed nativefier apps"
     echo " --args                           print all passable arguments to the Nativefier process"
-    echo " --help                           display this help and exit"
     echo " --version                        output version information and exit"
     echo
     echo -e '\e[1;31mExamples:\e[0m'
