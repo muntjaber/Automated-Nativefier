@@ -61,7 +61,7 @@ OPTIONS
        --uninstall PKGNAME
               uninstall a nativefier app
 
-       --list 
+       --installed 
        		  list package name for all installed nativefier apps
 
        --args 

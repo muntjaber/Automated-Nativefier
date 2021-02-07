@@ -231,7 +231,7 @@ function usage() {
     echo " -u, --url URL                    the URL of the Web page to convert"
     echo " -N, --nativefier 'ARG'           pass arguments to the Nativefier process directly"
     echo " --uninstall PKGNAME              uninstall a nativefier app"
-    echo " --list                           list package name for all installed nativefier apps"
+    echo " --installed                      list package name for all installed nativefier apps"
     echo " --args                           print all passable arguments to the Nativefier process"
     echo " --help                           display this help and exit"
     echo " --version                        output version information and exit"
