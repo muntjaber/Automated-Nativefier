@@ -146,8 +146,10 @@ function list-installed() {
     shopt -s nullglob
     for directory in /usr/share/*; do
         if echo "${directory}" | grep -iq '.*-nativefier$'; then
-            basename "${directory}"
-        fi
+            name="$(basename "${directory}")"
+            echo -ne "\e[1;32m$name\e[0m"
+            echo " $(sed -n '/^Comment=/s/Comment=//p' "/usr/share/applications/${name}.desktop" )"
+        fi 
     done
 }
 
@@ -267,7 +269,7 @@ nativefier_help=$(nativefier --help | sed '/Usage/,/Options/d'| \
 nativefier_parsed_arguments=()
 
 if [ "$#" -gt 0 ]; then
-    options=$(getopt -n "${THIS}" -o p:n:d:u:yN:h --long pkgname:,name:,desc:,url:,list,uninstall::,nativefier:,help,args,version -- "$@" 2>/dev/null)
+    options=$(getopt -n "${THIS}" -o p:n:d:u:yN:h --long pkgname:,name:,desc:,url:,installed,uninstall::,nativefier:,help,args,version -- "$@" 2>/dev/null)
 
     if [ "$?" -gt 0 ]; then
         inform 'WARNING' "Unknown option encountered.\n"
